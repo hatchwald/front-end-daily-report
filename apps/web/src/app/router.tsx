@@ -8,6 +8,7 @@ import { LoginPage } from '@/features/auth/pages/login-page';
 import { RegisterPage } from '@/features/auth/pages/register-page';
 import { ConnectionsPage } from '@/features/connections/pages/connections-page';
 import { SelfHostedGitLabPage } from '@/features/connections/pages/self-hosted-gitlab-page';
+import { RepositoriesPage } from '@/features/repositories/pages/repositories-page';
 
 export const router = createBrowserRouter([
   {
@@ -46,6 +47,7 @@ export const router = createBrowserRouter([
             element: <ConnectionsPage />,
           },
           { path: 'connections/gitlab/self-hosted', element: <SelfHostedGitLabPage /> },
+          { path: 'repositories', element: <RepositoriesPage /> },
           {
             path: 'settings',
             element: (

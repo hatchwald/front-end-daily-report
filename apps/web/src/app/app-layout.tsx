@@ -1,4 +1,11 @@
-import { BookOpenText, GitBranch, LayoutDashboard, LogOut, Settings } from 'lucide-react';
+import {
+  BookOpenText,
+  FolderGit2,
+  GitBranch,
+  LayoutDashboard,
+  LogOut,
+  Settings,
+} from 'lucide-react';
 import { useEffect } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
@@ -11,6 +18,7 @@ const navigation = [
   { label: 'Dashboard', path: '/', icon: LayoutDashboard },
   { label: 'Reports', path: '/reports', icon: BookOpenText },
   { label: 'Connections', path: '/connections', icon: GitBranch },
+  { label: 'Repositories', path: '/repositories', icon: FolderGit2 },
   { label: 'Settings', path: '/settings', icon: Settings },
 ];
 
