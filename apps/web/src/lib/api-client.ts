@@ -40,6 +40,9 @@ async function request<T>(path: string, method: string, options: RequestOptions 
   if (!response.ok) {
     const errorBody = (await response.json().catch(() => ({}))) as ApiErrorBody;
     const apiError = errorBody.error ?? errorBody;
+    if (response.status === 401 && path !== '/api/v1/auth/me' && path !== '/api/v1/auth/login') {
+      window.dispatchEvent(new Event('devlog:session-expired'));
+    }
     throw new ApiError(
       apiError.message ?? 'The request could not be completed.',
       response.status,

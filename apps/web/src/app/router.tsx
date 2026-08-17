@@ -6,6 +6,8 @@ import { ProtectedRoute } from '@/features/auth/components/protected-route';
 import { PublicOnlyRoute } from '@/features/auth/components/public-only-route';
 import { LoginPage } from '@/features/auth/pages/login-page';
 import { RegisterPage } from '@/features/auth/pages/register-page';
+import { ConnectionsPage } from '@/features/connections/pages/connections-page';
+import { SelfHostedGitLabPage } from '@/features/connections/pages/self-hosted-gitlab-page';
 
 export const router = createBrowserRouter([
   {
@@ -41,13 +43,9 @@ export const router = createBrowserRouter([
           },
           {
             path: 'connections',
-            element: (
-              <PlaceholderPage
-                title="Connections"
-                description="Connect GitHub, GitLab, or a self-hosted GitLab account."
-              />
-            ),
+            element: <ConnectionsPage />,
           },
+          { path: 'connections/gitlab/self-hosted', element: <SelfHostedGitLabPage /> },
           {
             path: 'settings',
             element: (
