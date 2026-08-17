@@ -1,4 +1,8 @@
-import type { GenerateReportInput, Report } from '@/features/reports/report.types';
+import type {
+  GenerateReportInput,
+  Report,
+  ReportHistoryPage,
+} from '@/features/reports/report.types';
 import { apiClient } from '@/lib/api-client';
 
 interface ReportResponse {
@@ -17,4 +21,12 @@ export async function getReport(date: string, signal?: AbortSignal): Promise<Rep
 export async function generateReport(input: GenerateReportInput): Promise<Report> {
   const response = await apiClient.post<ReportResponse>('/api/v1/reports/generate', input);
   return response.data;
+}
+
+export async function getReportHistory(
+  page: number,
+  limit: number,
+  signal?: AbortSignal,
+): Promise<ReportHistoryPage> {
+  return apiClient.get<ReportHistoryPage>(`/api/v1/reports?page=${page}&limit=${limit}`, signal);
 }

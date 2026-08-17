@@ -34,3 +34,11 @@ export interface GenerateReportInput {
   date: string;
   connectionIds: string[];
 }
+
+export type ReportSummary = Omit<Report, 'items'>;
+
+export interface ReportHistoryPage {
+  success: boolean;
+  data: ReportSummary[];
+  meta: { page: number; limit: number; total: number };
+}

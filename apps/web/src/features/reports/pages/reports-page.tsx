@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
 import { useCurrentUser } from '@/features/auth/hooks/use-current-user';
@@ -11,8 +11,10 @@ import { formatReportAsText, getLocalCalendarDate } from '@/features/reports/lib
 import { ApiError } from '@/lib/api-client';
 
 export function ReportsPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const reportDateFromUrl = searchParams.get('date') ?? '';
+  const [searchParams] = useSearchParams();
+  const params = useParams<{ date: string }>();
+  const navigate = useNavigate();
+  const reportDateFromUrl = params.date ?? searchParams.get('date') ?? '';
   const [selectedDate, setSelectedDate] = useState(reportDateFromUrl || getLocalCalendarDate());
   const [selectedConnectionIds, setSelectedConnectionIds] = useState<string[] | null>(null);
   const [formError, setFormError] = useState<string>();
@@ -55,7 +57,7 @@ export function ReportsPage() {
         date: selectedDate,
         connectionIds: effectiveConnectionIds,
       });
-      setSearchParams({ date: generatedReport.reportDate }, { replace: true });
+      await navigate(`/reports/${generatedReport.reportDate}`, { replace: true });
     } catch {
       /* Mutation state renders the error while preserving the existing report. */
     }
@@ -88,10 +90,17 @@ export function ReportsPage() {
 
   return (
     <section className="mx-auto max-w-5xl">
-      <h1 className="text-3xl font-bold tracking-tight text-slate-950">Reports</h1>
-      <p className="mt-2 text-slate-600">
-        Generate a daily summary from your enabled repositories.
-      </p>
+      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-950">Reports</h1>
+          <p className="mt-2 text-slate-600">
+            Generate a daily summary from your enabled repositories.
+          </p>
+        </div>
+        <Link className="font-medium text-blue-700 hover:underline" to="/reports/history">
+          View report history
+        </Link>
+      </div>
       <form
         className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
         onSubmit={(event) => void submitGeneration(event)}

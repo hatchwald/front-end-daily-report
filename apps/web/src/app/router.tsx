@@ -10,6 +10,7 @@ import { ConnectionsPage } from '@/features/connections/pages/connections-page';
 import { SelfHostedGitLabPage } from '@/features/connections/pages/self-hosted-gitlab-page';
 import { RepositoriesPage } from '@/features/repositories/pages/repositories-page';
 import { ReportsPage } from '@/features/reports/pages/reports-page';
+import { ReportHistoryPage } from '@/features/reports/pages/report-history-page';
 
 export const router = createBrowserRouter([
   {
@@ -38,6 +39,8 @@ export const router = createBrowserRouter([
             path: 'reports',
             element: <ReportsPage />,
           },
+          { path: 'reports/history', element: <ReportHistoryPage /> },
+          { path: 'reports/:date', element: <ReportsPage /> },
           {
             path: 'connections',
             element: <ConnectionsPage />,
