@@ -3,6 +3,7 @@ import { environment } from '@/lib/env';
 interface ApiErrorBody {
   code?: string;
   message?: string;
+  error?: { code?: string; message?: string };
 }
 
 export class ApiError extends Error {
@@ -38,10 +39,11 @@ async function request<T>(path: string, method: string, options: RequestOptions 
 
   if (!response.ok) {
     const errorBody = (await response.json().catch(() => ({}))) as ApiErrorBody;
+    const apiError = errorBody.error ?? errorBody;
     throw new ApiError(
-      errorBody.message ?? 'The request could not be completed.',
+      apiError.message ?? 'The request could not be completed.',
       response.status,
-      errorBody.code,
+      apiError.code,
       response.headers.get('x-request-id') ?? undefined,
     );
   }
