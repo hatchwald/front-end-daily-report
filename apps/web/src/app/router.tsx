@@ -9,6 +9,7 @@ import { RegisterPage } from '@/features/auth/pages/register-page';
 import { ConnectionsPage } from '@/features/connections/pages/connections-page';
 import { SelfHostedGitLabPage } from '@/features/connections/pages/self-hosted-gitlab-page';
 import { RepositoriesPage } from '@/features/repositories/pages/repositories-page';
+import { ReportsPage } from '@/features/reports/pages/reports-page';
 
 export const router = createBrowserRouter([
   {
@@ -35,12 +36,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'reports',
-            element: (
-              <PlaceholderPage
-                title="Reports"
-                description="Generate and review daily developer activity reports."
-              />
-            ),
+            element: <ReportsPage />,
           },
           {
             path: 'connections',
