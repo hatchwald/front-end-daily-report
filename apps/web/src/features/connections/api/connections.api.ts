@@ -32,9 +32,12 @@ export async function disconnectConnection(connectionId: string): Promise<void> 
   await apiClient.delete<void>(`/api/v1/connections/${encodeURIComponent(connectionId)}`);
 }
 
-export function redirectToAuthorizationUrl(authorizationUrl: string): void {
+export function redirectToAuthorizationUrl(
+  authorizationUrl: string,
+  targetWindow: Window = window,
+): void {
   const parsedUrl = new URL(authorizationUrl);
   if (!['https:', 'http:'].includes(parsedUrl.protocol))
     throw new Error('Unsupported authorization URL.');
-  window.location.assign(parsedUrl.href);
+  targetWindow.location.assign(parsedUrl.href);
 }

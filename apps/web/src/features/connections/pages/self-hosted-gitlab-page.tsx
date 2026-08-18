@@ -1,8 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
-import { redirectToAuthorizationUrl } from '@/features/connections/api/connections.api';
+import { useConnectionAuthorization } from '@/features/connections/hooks/use-connection-authorization';
 import { useGitLabAuthorization } from '@/features/connections/hooks/use-connections';
 import { gitLabServerSchema } from '@/features/connections/schemas/gitlab.schema';
 import { ApiError } from '@/lib/api-client';
@@ -11,6 +11,10 @@ export function SelfHostedGitLabPage() {
   const [baseUrl, setBaseUrl] = useState('');
   const [validationError, setValidationError] = useState<string>();
   const authorization = useGitLabAuthorization();
+  const navigate = useNavigate();
+  const authorizationFlow = useConnectionAuthorization(() => {
+    void navigate('/connections', { replace: true, state: { connectionSuccess: true } });
+  });
   useEffect(() => {
     document.title = 'Connect self-hosted GitLab | DevLog';
   }, []);
@@ -23,17 +27,15 @@ export function SelfHostedGitLabPage() {
       return;
     }
     setValidationError(undefined);
-    try {
-      redirectToAuthorizationUrl(await authorization.mutateAsync(result.data.baseUrl));
-    } catch {
-      /* Mutation state renders the error. */
-    }
+    await authorizationFlow.startAuthorization(() =>
+      authorization.mutateAsync(result.data.baseUrl),
+    );
   }
 
   const apiError =
     authorization.error instanceof ApiError && authorization.error.status === 422
       ? 'This GitLab server could not start OAuth. Confirm that OAuth is configured on the server.'
-      : authorization.error
+      : authorization.error || authorizationFlow.isError
         ? 'Unable to connect to this GitLab server. Please try again.'
         : null;
 
@@ -76,8 +78,12 @@ export function SelfHostedGitLabPage() {
             {validationError}
           </p>
         ) : null}
-        <Button className="mt-5" disabled={authorization.isPending} type="submit">
-          {authorization.isPending ? 'Starting authorization...' : 'Continue'}
+        <Button
+          className="mt-5"
+          disabled={authorizationFlow.isAuthorizing || !authorizationFlow.isReady}
+          type="submit"
+        >
+          {authorizationFlow.isAuthorizing ? 'Waiting for authorization...' : 'Continue'}
         </Button>
       </form>
     </section>

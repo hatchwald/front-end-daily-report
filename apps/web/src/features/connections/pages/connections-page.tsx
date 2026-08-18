@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
-import { redirectToAuthorizationUrl } from '@/features/connections/api/connections.api';
 import { ConnectionEmptyState } from '@/features/connections/components/connection-empty-state';
+import { ConnectionToast } from '@/features/connections/components/connection-toast';
 import { DisconnectDialog } from '@/features/connections/components/disconnect-dialog';
 import { GitConnectionCard } from '@/features/connections/components/git-connection-card';
 import type { GitConnection } from '@/features/connections/connection.types';
@@ -13,33 +13,40 @@ import {
   useGitHubAuthorization,
   useGitLabAuthorization,
 } from '@/features/connections/hooks/use-connections';
+import { useConnectionAuthorization } from '@/features/connections/hooks/use-connection-authorization';
 
 export function ConnectionsPage() {
   const connections = useConnections();
   const disconnect = useDisconnectConnection();
   const githubAuthorization = useGitHubAuthorization();
   const gitlabAuthorization = useGitLabAuthorization();
+  const authorizationFlow = useConnectionAuthorization();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [navigationSuccess, setNavigationSuccess] = useState(
+    Boolean((location.state as { connectionSuccess?: boolean } | null)?.connectionSuccess),
+  );
   const [selectedConnection, setSelectedConnection] = useState<GitConnection | null>(null);
-  const authorizationError = githubAuthorization.error ?? gitlabAuthorization.error;
+  const authorizationError =
+    authorizationFlow.isError || githubAuthorization.error || gitlabAuthorization.error;
 
   useEffect(() => {
     document.title = 'Connections | DevLog';
   }, []);
 
+  useEffect(() => {
+    if (!navigationSuccess) return;
+    void navigate(location.pathname, { replace: true, state: null });
+    const timeoutId = window.setTimeout(() => setNavigationSuccess(false), 4_000);
+    return () => window.clearTimeout(timeoutId);
+  }, [location.pathname, navigate, navigationSuccess]);
+
   async function connectGitHub() {
-    try {
-      redirectToAuthorizationUrl(await githubAuthorization.mutateAsync());
-    } catch {
-      /* Mutation state renders the error. */
-    }
+    await authorizationFlow.startAuthorization(() => githubAuthorization.mutateAsync());
   }
 
   async function connectGitLab(baseUrl = 'https://gitlab.com') {
-    try {
-      redirectToAuthorizationUrl(await gitlabAuthorization.mutateAsync(baseUrl));
-    } catch {
-      /* Mutation state renders the error. */
-    }
+    await authorizationFlow.startAuthorization(() => gitlabAuthorization.mutateAsync(baseUrl));
   }
 
   async function confirmDisconnect() {
@@ -64,15 +71,18 @@ export function ConnectionsPage() {
         Connect the accounts that DevLog should use when generating reports.
       </p>
       <div className="mt-6 flex flex-wrap gap-3">
-        <Button disabled={githubAuthorization.isPending} onClick={() => void connectGitHub()}>
-          {githubAuthorization.isPending ? 'Connecting GitHub...' : 'Connect GitHub'}
+        <Button
+          disabled={authorizationFlow.isAuthorizing || !authorizationFlow.isReady}
+          onClick={() => void connectGitHub()}
+        >
+          {authorizationFlow.isAuthorizing ? 'Waiting for authorization...' : 'Connect GitHub'}
         </Button>
         <Button
           className="bg-slate-800 hover:bg-slate-900"
-          disabled={gitlabAuthorization.isPending}
+          disabled={authorizationFlow.isAuthorizing || !authorizationFlow.isReady}
           onClick={() => void connectGitLab()}
         >
-          {gitlabAuthorization.isPending ? 'Connecting GitLab...' : 'Connect GitLab.com'}
+          {authorizationFlow.isAuthorizing ? 'Waiting for authorization...' : 'Connect GitLab.com'}
         </Button>
         <Link
           className="inline-flex min-h-11 items-center rounded-lg px-4 font-medium text-blue-700 ring-1 ring-blue-200 hover:bg-blue-50"
@@ -124,6 +134,9 @@ export function ConnectionsPage() {
         onCancel={() => setSelectedConnection(null)}
         onConfirm={() => void confirmDisconnect()}
       />
+      {authorizationFlow.isSuccess || navigationSuccess ? (
+        <ConnectionToast message="Git account connected successfully." />
+      ) : null}
     </section>
   );
 }
